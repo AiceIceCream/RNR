@@ -1881,6 +1881,8 @@ body {
 .field-input,
 .field-select,
 .field-textarea {
+  box-sizing: border-box;
+  width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--border-light);
   background: var(--surface-white);
@@ -1895,6 +1897,45 @@ body {
 .field-select:focus,
 .field-textarea:focus {
   border-color: var(--border-dark);
+}
+
+.edit-size-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.edit-size-card {
+  background: var(--surface-alt);
+  border: 1px solid var(--border-light);
+  padding: 10px 12px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.edit-size-card .size-input-wrap {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  box-sizing: border-box;
+}
+
+.edit-size-card input.field-input,
+.edit-size-card input[type="number"] {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  padding: 6px 8px;
+  font-size: 13px;
+  text-align: center;
 }
 
 .gcash-payment-box {

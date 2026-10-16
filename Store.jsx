@@ -3008,20 +3008,9 @@ export default function StoreApp() {
                 </div>
 
                 {/* Stock per size input list */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '10px' }}>
+                <div className="edit-size-grid">
                   {Object.entries(editingProduct.stock || {}).map(([sizeKey, sizeQty]) => (
-                    <div
-                      key={sizeKey}
-                      style={{
-                        background: 'var(--surface-alt)',
-                        border: '1px solid var(--border-light)',
-                        padding: '10px 12px',
-                        borderRadius: '4px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '6px'
-                      }}
-                    >
+                    <div key={sizeKey} className="edit-size-card">
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <strong style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--text-main)' }}>
                           Size {sizeKey}
@@ -3049,13 +3038,12 @@ export default function StoreApp() {
                           ✕
                         </button>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <div className="size-input-wrap">
                         <input
                           type="number"
                           min="0"
                           step="1"
                           className="field-input"
-                          style={{ padding: '6px 8px', fontSize: '13px', textAlign: 'center' }}
                           value={sizeQty}
                           onChange={e => {
                             const val = Math.max(0, parseInt(e.target.value, 10) || 0);
@@ -3094,12 +3082,12 @@ export default function StoreApp() {
                     ))}
                   </div>
 
-                  <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '10px', width: '100%', boxSizing: 'border-box' }}>
                     <input
                       type="text"
                       className="field-input"
                       placeholder="Custom Size (e.g. 4XL, Youth M)"
-                      style={{ flex: 1, padding: '6px 10px', fontSize: '12px' }}
+                      style={{ flex: 1, minWidth: 0, padding: '6px 10px', fontSize: '12px' }}
                       value={newEditSizeName}
                       onChange={e => setNewEditSizeName(e.target.value)}
                     />
@@ -3108,14 +3096,14 @@ export default function StoreApp() {
                       className="field-input"
                       placeholder="Stock"
                       min="0"
-                      style={{ width: '80px', padding: '6px 10px', fontSize: '12px' }}
+                      style={{ width: '80px', flexShrink: 0, minWidth: 0, padding: '6px 10px', fontSize: '12px' }}
                       value={newEditSizeQty}
                       onChange={e => setNewEditSizeQty(e.target.value)}
                     />
                     <button
                       type="button"
                       className="admin-action-btn"
-                      style={{ background: 'var(--text-main)', color: '#FFF', borderColor: 'var(--text-main)' }}
+                      style={{ flexShrink: 0, background: 'var(--text-main)', color: '#FFF', borderColor: 'var(--text-main)' }}
                       onClick={() => {
                         const trimmed = newEditSizeName.trim().toUpperCase();
                         if (!trimmed) return;

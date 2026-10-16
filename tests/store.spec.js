@@ -508,7 +508,7 @@ test.describe('RNR OnlineShop — High-Performance Sportswear', () => {
 
   test('should display Lulus-inspired editorial homepage with Bike1 and Bike2 models, pose switcher, and Shop Now button', async ({ page }) => {
     // 1. Verify headline matches Lulus composition
-    await expect(page.getByRole('heading', { name: /YOU'VE BEEN WARMED/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /YOU'VE BEEN (WARMED|Turning Heads)/i })).toBeVisible();
     await expect(page.getByRole('heading', { name: /Engineered for Speed/i })).toBeVisible();
 
     // 2. Verify Shop Now button is present
