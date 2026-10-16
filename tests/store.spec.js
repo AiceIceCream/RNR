@@ -393,36 +393,20 @@ test.describe('RNR OnlineShop — High-Performance Sportswear', () => {
     await page.getByRole('button', { name: /Close Email Notification Preview/i }).click();
   });
 
-  test('should display real Email Delivery settings tab, step-by-step setup guide, and configuration inputs in admin portal', async ({ page }) => {
+  test('should have removed Email Delivery tab from admin portal and keep clean operations tabs', async ({ page }) => {
     // Open admin portal
     await page.getByRole('button', { name: 'Admin Portal' }).click();
     await page.locator('input[type="text"]').fill('admin');
     await page.locator('input[type="password"]').fill('admin12345');
     await page.getByRole('button', { name: 'Sign In' }).click();
 
-    // Click Email Delivery tab
-    const emailTabBtn = page.getByRole('button', { name: /Email Delivery \(Gmail\)/i });
-    await expect(emailTabBtn).toBeVisible();
-    await emailTabBtn.click();
+    // Verify Email Delivery tab is completely removed from admin tabs
+    await expect(page.getByRole('button', { name: /Email Delivery \(Gmail\)/i })).toHaveCount(0);
 
-    // Verify settings guide and form are rendered
-    await expect(page.getByRole('heading', { name: /Real Email Delivery Settings \(Gmail \/ EmailJS\)/i })).toBeVisible();
-    await expect(page.getByText(/Quick 3-Minute Setup Guide/i)).toBeVisible();
-    await expect(page.getByPlaceholder(/service_gmaildelivery/i)).toBeVisible();
-    await expect(page.getByPlaceholder(/5xYzAbCdE12345/i)).toBeVisible();
-    await expect(page.getByPlaceholder(/template_receipt_verified/i)).toBeVisible();
-    await expect(page.getByRole('button', { name: /Save EmailJS Configuration/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Send Real Test Email/i })).toBeVisible();
-
-    // Fill credentials and save
-    await page.getByPlaceholder(/service_gmaildelivery/i).fill('service_test_rnr');
-    await page.getByPlaceholder(/5xYzAbCdE12345/i).fill('pk_test_12345');
-    await page.getByPlaceholder(/template_receipt_verified/i).fill('template_receipt_01');
-    await page.getByRole('button', { name: /Save EmailJS Configuration/i }).click();
-
-    // Toast feedback appears
-    await expect(page.locator('.toast-msg')).toBeVisible();
-    await expect(page.getByText(/🟢 Real Gmail Delivery Active/i)).toBeVisible();
+    // Verify only Order Queue and Inventory & Catalog tabs remain
+    await expect(page.getByRole('button', { name: /Order Queue/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Inventory & Catalog/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Log Out/i })).toBeVisible();
   });
 
   test('should provide customer Track Order button, track by code, and hide real email transmission when not logged in as admin', async ({ page }) => {

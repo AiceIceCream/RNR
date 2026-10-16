@@ -316,7 +316,7 @@ export default function StoreApp() {
   };
 
   // EmailJS & Real Gmail Delivery configuration
-  const [emailConfig, setEmailConfig] = useState(() => {
+  const [emailConfig] = useState(() => {
     try {
       const saved = localStorage.getItem('rnr_emailjs_config_v1');
       if (saved) {
@@ -336,18 +336,19 @@ export default function StoreApp() {
       dispatchTemplateId: import.meta.env?.VITE_EMAILJS_DISPATCH_TEMPLATE_ID || 'template_nzrxl0m',
     };
   });
-  const [testEmailAddress, setTestEmailAddress] = useState('');
-  const [isSendingTestEmail, setIsSendingTestEmail] = useState(false);
-  const [testEmailStatus, setTestEmailStatus] = useState(null);
-  const [showEmailTemplateCode, setShowEmailTemplateCode] = useState(false);
 
-  const handleSaveEmailConfig = (e) => {
-    e.preventDefault();
-    localStorage.setItem('rnr_emailjs_config_v1', JSON.stringify(emailConfig));
-    showToast('✓ EmailJS configuration saved! Real email delivery updated.');
-  };
+  // Client sent email registry: limits real email transmission to AT MOST 1 email per customer email to maximize free credits
+  const [sentClientEmails, setSentClientEmails] = useState(() => {
+    try {
+      const saved = localStorage.getItem('rnr_sent_client_emails');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
 
   // Helper to send real emails to Gmail inboxes via EmailJS (ADMIN-ONLY RESPONSIBILITY)
+  // Enforces 1 email per client email address to maximize free credit usage
   const sendRealEmail = async ({ templateId, templateParams }) => {
     if (!isAdminLoggedIn) {
       return {
@@ -356,95 +357,43 @@ export default function StoreApp() {
         error: 'Email dispatch is restricted to authenticated administrators only.',
       };
     }
+
+    const recipient = (templateParams?.email || templateParams?.to_email || '').trim().toLowerCase();
+
+    // Check if this client email already received a sent email (limit to 1 per client email to maximize credits)
+    if (recipient && sentClientEmails.includes(recipient)) {
+      return {
+        success: true,
+        skipped: true,
+        reason: 'ALREADY_SENT_TO_CLIENT',
+        message: `Credit saved: 1 email already delivered to ${recipient}. Customer tracks order via portal.`,
+      };
+    }
+
     const sId = emailConfig.serviceId?.trim();
     const pKey = emailConfig.publicKey?.trim();
     const tId = templateId?.trim();
 
     if (!sId || !pKey || !tId) {
-      return { success: false, reason: 'NOT_CONFIGURED', error: 'EmailJS keys incomplete. Configure in Admin -> Email Delivery.' };
+      return { success: false, reason: 'NOT_CONFIGURED', error: 'EmailJS keys incomplete.' };
     }
 
     try {
       const res = await emailjs.send(sId, tId, templateParams, pKey);
+      if (recipient) {
+        setSentClientEmails(prev => {
+          const updated = [...new Set([...prev, recipient])];
+          try {
+            localStorage.setItem('rnr_sent_client_emails', JSON.stringify(updated));
+          } catch (e) {}
+          return updated;
+        });
+      }
       return { success: true, response: res };
     } catch (err) {
       console.error('EmailJS Send Error:', err);
       const errMsg = err?.text || err?.message || 'EmailJS service error';
       return { success: false, error: errMsg };
-    }
-  };
-
-  const handleSendTestEmail = async (e) => {
-    e.preventDefault();
-    if (!testEmailAddress.trim()) {
-      setTestEmailStatus({ type: 'error', msg: 'Please enter a valid Gmail address to test.' });
-      return;
-    }
-    const templateId = emailConfig.receiptTemplateId?.trim() || emailConfig.dispatchTemplateId?.trim();
-    if (!emailConfig.serviceId?.trim() || !emailConfig.publicKey?.trim() || !templateId) {
-      setTestEmailStatus({
-        type: 'error',
-        msg: 'Please enter and save Service ID, Public Key, and at least one Template ID before testing.'
-      });
-      return;
-    }
-
-    setIsSendingTestEmail(true);
-    setTestEmailStatus(null);
-
-    const testParams = {
-      email: testEmailAddress.trim(),
-      to_email: testEmailAddress.trim(),
-      to_name: 'Test Customer',
-      subject: 'Order Confirmation — RNR OnlineShop Order #RNR-TEST-001',
-      order_id: 'RNR-TEST-001',
-      receipt_number: 'RCPT-TEST-001',
-      orders: [
-        {
-          name: 'Maroon Gold Athletic Dri-FIT Tee (M • Black)',
-          units: 1,
-          price: '850',
-          image_url: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=200&auto=format&fit=crop&q=60'
-        },
-        {
-          name: 'Aero Pro Ergonomic Cycling Socks (L • White)',
-          units: 2,
-          price: '400',
-          image_url: 'https://images.unsplash.com/photo-1586350977771-b3b0abd50c82?w=200&auto=format&fit=crop&q=60'
-        }
-      ],
-      cost: {
-        shipping: '80',
-        tax: '0 (VAT Inclusive)',
-        total: '1,330'
-      },
-      payment_method: 'GCASH',
-      payment_ref: '1029384756102',
-      total_amount: '₱1,330',
-      items_summary: 'Maroon Gold Athletic Dri-FIT Tee (M • Black) x1, Aero Pro Socks x2',
-      customer_address: 'RNR Sportswear Center, Cagayan de Oro City',
-      customer_phone: '0917-889-1024',
-      tracking_url: 'https://track.rnr-onlineshop.ph/?ref=RNT-98124801',
-      courier: 'RNT Express',
-      tracking_number: 'RNT-98124801',
-      date: new Date().toLocaleDateString(),
-      message: 'Thank you for choosing RNR OnlineShop! Your payment has been verified by our operations team.'
-    };
-
-    const res = await sendRealEmail({ templateId, templateParams: testParams });
-    setIsSendingTestEmail(false);
-
-    if (res.success) {
-      setTestEmailStatus({
-        type: 'success',
-        msg: `✓ Email successfully transmitted to ${testEmailAddress.trim()}! Please check your Gmail Inbox and Spam folder.`
-      });
-      showToast(`✓ Test email delivered to ${testEmailAddress.trim()}!`);
-    } else {
-      setTestEmailStatus({
-        type: 'error',
-        msg: `❌ EmailJS Error: ${res.error}. Please check your Service ID, Public Key, or Template ID.`
-      });
     }
   };
 
@@ -839,8 +788,10 @@ export default function StoreApp() {
       };
 
       sendRealEmail({ templateId: tId, templateParams }).then(res => {
-        if (res.success) {
-          showToast(`✓ Real receipt email delivered to ${recipientEmail} via Gmail!`);
+        if (res.skipped) {
+          showToast(`ℹ️ Email credit saved: 1 email already sent to ${recipientEmail}. Customer tracks via code.`);
+        } else if (res.success) {
+          showToast(`✓ Real receipt email delivered to ${recipientEmail} via Gmail (1 per client limit)!`);
         } else {
           showToast(`⚠️ EmailJS Notice: ${res.error}. Recorded locally.`);
         }
@@ -938,7 +889,9 @@ export default function StoreApp() {
       };
 
       sendRealEmail({ templateId: tId, templateParams }).then(res => {
-        if (res.success) {
+        if (res.skipped) {
+          showToast(`🚚 Dispatched! Credit saved: email already sent once to ${recipientEmail}. Customer tracks on portal.`);
+        } else if (res.success) {
           showToast(`✓ Real dispatch tracking email delivered to ${recipientEmail} via Gmail!`);
         } else {
           showToast(`⚠️ EmailJS Notice: ${res.error}. Recorded locally.`);
@@ -1215,12 +1168,6 @@ export default function StoreApp() {
                   onClick={() => setAdminTab('inventory')}
                 >
                   Inventory & Catalog ({products.length})
-                </button>
-                <button
-                  className={`admin-tab-btn ${adminTab === 'email_settings' ? 'active' : ''}`}
-                  onClick={() => setAdminTab('email_settings')}
-                >
-                  ✉ Email Delivery (Gmail)
                 </button>
                 <button
                   className="admin-tab-btn"
@@ -1672,219 +1619,7 @@ export default function StoreApp() {
               </div>
             )}
 
-            {/* Admin: Real Email Delivery Settings (Gmail / EmailJS) */}
-            {adminTab === 'email_settings' && (
-              <div className="admin-card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', borderBottom: '1px solid var(--border-light)', paddingBottom: '16px' }}>
-                  <div>
-                    <h3 style={{ fontSize: '18px', fontWeight: 800 }}>✉ Real Email Delivery Settings (Gmail / EmailJS)</h3>
-                    <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                      Connect your personal Gmail to deliver real payment receipts and courier tracking emails directly to customer inboxes.
-                    </p>
-                  </div>
-                  <div>
-                    {emailConfig.serviceId && emailConfig.publicKey && (emailConfig.receiptTemplateId || emailConfig.dispatchTemplateId) ? (
-                      <span className="email-status-pill email-status-active">
-                        🟢 Real Gmail Delivery Active
-                      </span>
-                    ) : (
-                      <span className="email-status-pill email-status-inactive">
-                        ⚠️ Local Simulation Mode (Real Delivery Inactive)
-                      </span>
-                    )}
-                  </div>
-                </div>
 
-                <div className="email-settings-grid">
-                  {/* Left: Step by Step Setup Guide */}
-                  <div className="email-guide-card">
-                    <h4 style={{ fontSize: '13px', fontWeight: 800, fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>
-                      Quick 3-Minute Setup Guide (Free 200 emails/mo)
-                    </h4>
-                    
-                    <div className="email-guide-step">
-                      <div className="email-step-num">1</div>
-                      <div className="email-step-content">
-                        Create a free account at <a href="https://www.emailjs.com" target="_blank" rel="noreferrer" style={{ color: 'var(--rnr-coral)', fontWeight: 700 }}>emailjs.com</a>.
-                      </div>
-                    </div>
-
-                    <div className="email-guide-step">
-                      <div className="email-step-num">2</div>
-                      <div className="email-step-content">
-                        In EmailJS Dashboard, click <strong>Email Services</strong> &gt; <strong>Add New Service</strong> &gt; select <strong>Gmail</strong> &gt; Click <strong>Connect Account</strong> to link your Gmail. Copy your <strong>Service ID</strong> (e.g. <code>service_xxxxxx</code>).
-                      </div>
-                    </div>
-
-                    <div className="email-guide-step">
-                      <div className="email-step-num">3</div>
-                      <div className="email-step-content">
-                        Click <strong>Email Templates</strong> &gt; <strong>Create New Template</strong>.<br />
-                        - Set Subject: <code>&#123;&#123;subject&#125;&#125;</code><br />
-                        - Set Content: <code>&#123;&#123;message&#125;&#125;</code> (or include variables like <code>&#123;&#123;order_id&#125;&#125;</code>, <code>&#123;&#123;total_amount&#125;&#125;</code>, <code>&#123;&#123;tracking_url&#125;&#125;</code>).<br />
-                        Save and copy your <strong>Template ID</strong> (e.g. <code>template_xxxxxx</code>).
-                      </div>
-                    </div>
-
-                    <div className="email-guide-step">
-                      <div className="email-step-num">4</div>
-                      <div className="email-step-content">
-                        Click <strong>Account</strong> (bottom-left) &gt; Copy your <strong>Public Key</strong> (e.g. <code>user_xxxxxx</code> or public key).
-                      </div>
-                    </div>
-
-                    <div className="email-guide-step">
-                      <div className="email-step-num">5</div>
-                      <div className="email-step-content">
-                        Paste them in the configuration form on the right and click <strong>Save EmailJS Configuration</strong>!
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right: Credentials Form & Test Sandbox */}
-                  <div>
-                    <form onSubmit={handleSaveEmailConfig} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                      <div className="form-field">
-                        <label className="field-label">EmailJS Service ID</label>
-                        <input
-                          type="text"
-                          className="field-input"
-                          placeholder="e.g. service_gmaildelivery"
-                          value={emailConfig.serviceId}
-                          onChange={e => setEmailConfig(prev => ({ ...prev, serviceId: e.target.value }))}
-                          required
-                        />
-                      </div>
-
-                      <div className="form-field">
-                        <label className="field-label">EmailJS Public Key</label>
-                        <input
-                          type="text"
-                          className="field-input"
-                          placeholder="e.g. 5xYzAbCdE12345"
-                          value={emailConfig.publicKey}
-                          onChange={e => setEmailConfig(prev => ({ ...prev, publicKey: e.target.value }))}
-                          required
-                        />
-                      </div>
-
-                      <div className="form-field">
-                        <label className="field-label">Receipt Template ID</label>
-                        <input
-                          type="text"
-                          className="field-input"
-                          placeholder="e.g. template_receipt_verified"
-                          value={emailConfig.receiptTemplateId}
-                          onChange={e => setEmailConfig(prev => ({ ...prev, receiptTemplateId: e.target.value }))}
-                          required
-                        />
-                      </div>
-
-                      <div className="form-field">
-                        <label className="field-label">Dispatch Tracking Template ID (Optional: leave blank to reuse receipt template)</label>
-                        <input
-                          type="text"
-                          className="field-input"
-                          placeholder="e.g. template_courier_dispatch"
-                          value={emailConfig.dispatchTemplateId}
-                          onChange={e => setEmailConfig(prev => ({ ...prev, dispatchTemplateId: e.target.value }))}
-                        />
-                      </div>
-
-                      <button type="submit" className="admin-submit-btn" style={{ marginTop: '6px' }}>
-                        <span>💾 Save EmailJS Configuration</span>
-                        <span>→</span>
-                      </button>
-                    </form>
-
-                    {/* Test Email Sandbox */}
-                    <div className="email-test-box">
-                      <h4 style={{ fontSize: '12px', fontWeight: 800, fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>
-                        🧪 Test Real Gmail Delivery
-                      </h4>
-                      <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                        Send an instant live test message to verify delivery to your personal Gmail inbox.
-                      </p>
-
-                      <form onSubmit={handleSendTestEmail} style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                        <input
-                          type="email"
-                          className="field-input"
-                          style={{ flex: 1, minWidth: '200px' }}
-                          placeholder="Enter your personal Gmail address..."
-                          value={testEmailAddress}
-                          onChange={e => setTestEmailAddress(e.target.value)}
-                        />
-                        <button
-                          type="submit"
-                          className="admin-action-btn"
-                          disabled={isSendingTestEmail}
-                          style={{ background: '#10B981', color: '#FFFFFF', borderColor: '#059669', padding: '10px 16px', fontWeight: 800 }}
-                        >
-                          {isSendingTestEmail ? 'Sending...' : '🚀 Send Real Test Email'}
-                        </button>
-                      </form>
-
-                      {testEmailStatus && (
-                        <div style={{
-                          padding: '10px 12px',
-                          fontSize: '12px',
-                          fontFamily: 'var(--font-mono)',
-                          borderRadius: '4px',
-                          background: testEmailStatus.type === 'success' ? '#D1FAE5' : '#FEE2E2',
-                          color: testEmailStatus.type === 'success' ? '#065F46' : '#991B1B',
-                          border: `1px solid ${testEmailStatus.type === 'success' ? '#10B981' : '#F87171'}`
-                        }}>
-                          {testEmailStatus.msg}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* EmailJS Ready-to-use HTML Template Section */}
-                <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--border-light)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '12px' }}>
-                    <div>
-                      <h4 style={{ fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
-                        📋 Tailored EmailJS HTML Template (RNR OnlineShop Format)
-                      </h4>
-                      <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                        Optimized with RNR vermilion branding, Philippine Peso (₱), order breakdown, and courier tracking button.
-                      </p>
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button
-                        type="button"
-                        className="admin-action-btn"
-                        onClick={() => {
-                          navigator.clipboard?.writeText(EMAILJS_HTML_TEMPLATE);
-                          showToast('✓ EmailJS HTML Template copied to clipboard! Paste it into emailjs.com.');
-                        }}
-                        style={{ background: 'var(--rnr-coral)', color: '#FFF', borderColor: 'var(--rnr-coral)', fontWeight: 800 }}
-                      >
-                        📋 Copy HTML Template
-                      </button>
-                      <button
-                        type="button"
-                        className="admin-action-btn"
-                        onClick={() => setShowEmailTemplateCode(!showEmailTemplateCode)}
-                      >
-                        {showEmailTemplateCode ? 'Hide Code' : 'View Code'}
-                      </button>
-                    </div>
-                  </div>
-
-                  {showEmailTemplateCode && (
-                    <div style={{ background: '#141312', color: '#FAF9F6', padding: '16px', borderRadius: '4px', maxHeight: '280px', overflowY: 'auto' }}>
-                      <pre style={{ margin: 0, fontSize: '11px', fontFamily: 'var(--font-mono)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                        {EMAILJS_HTML_TEMPLATE}
-                      </pre>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         )
       ) : (
