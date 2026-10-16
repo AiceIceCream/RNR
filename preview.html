@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NØRD.LABS — Industrial Technical Archive</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./Store.css">
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+
+    const TECHNICAL_ARCHIVE = [
+      {
+        id: 'spec-01',
+        code: 'SPEC.01',
+        title: 'Ventile Anorak Shell',
+        category: 'Outerwear',
+        price: 420,
+        weight: '380 GSM',
+        fabric: '100% Weatherproof Long-Staple Cotton',
+        hardware: 'YKK AquaGuard 2-Way Zip',
+        badge: 'BATCH 08 // READY',
+        image: 'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=800&q=80',
+        sizes: ['01/S', '02/M', '03/L']
+      },
+      {
+        id: 'spec-02',
+        code: 'SPEC.02',
+        title: 'Articulated Cargo Pant',
+        category: 'Bottoms',
+        price: 290,
+        weight: '280 GSM',
+        fabric: 'Cordura Duratech Ripstop',
+        hardware: 'Fidlock V-Buckle Waist Cinch',
+        badge: 'REINFORCED KNEE',
+        image: 'https://images.unsplash.com/photo-1517445312882-bc9910d016b7?auto=format&fit=crop&w=800&q=80',
+        sizes: ['30', '32', '34']
+      },
+      {
+        id: 'spec-03',
+        code: 'SPEC.03',
+        title: 'Seamless Thermal Knit',
+        category: 'Knitwear',
+        price: 220,
+        weight: '320 GSM',
+        fabric: '18.5µ Combed Merino Wool',
+        hardware: 'Flatlock Ergonomic Seaming',
+        badge: 'CORE TELEMETRY',
+        image: 'https://images.unsplash.com/photo-1578587018452-892bacefd3f2?auto=format&fit=crop&w=800&q=80',
+        sizes: ['01/S', '02/M', '03/L']
+      },
+      {
+        id: 'spec-04',
+        code: 'SPEC.04',
+        title: '3-Layer Storm Coat',
+        category: 'Outerwear',
+        price: 680,
+        weight: '440 GSM',
+        fabric: '3L Polyamide Membrane (28k mm Hydrostatic)',
+        hardware: 'Laser Cut Welded Baffles',
+        badge: 'SUB-ZERO RATED',
+        image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=800&q=80',
+        sizes: ['02/M', '03/L']
+      },
+      {
+        id: 'spec-05',
+        code: 'SPEC.05',
+        title: 'Micro-Ripstop Base Tee',
+        category: 'Base Layer',
+        price: 95,
+        weight: '140 GSM',
+        fabric: 'Ionic+ Silver Antimicrobial Filament',
+        hardware: 'Zero Friction Bound Neckline',
+        badge: 'HIGH PERMEABILITY',
+        image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=800&q=80',
+        sizes: ['01/S', '02/M', '03/L', '04/XL']
+      },
+      {
+        id: 'spec-06',
+        code: 'SPEC.06',
+        title: 'Modular Ballistic Tote',
+        category: 'Equipment',
+        price: 160,
+        weight: '620 GSM',
+        fabric: '1050D Mil-Spec Cordura Ballistic',
+        hardware: 'AustriAlpin Cobra Quick-Release',
+        badge: 'LOAD-BEARING',
+        image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80',
+        sizes: ['OS']
+      }
+    ];
+
+    const SECTORS = ['ALL ARCHIVE', 'Outerwear', 'Bottoms', 'Knitwear', 'Base Layer', 'Equipment'];
+
+    function StoreApp() {
+      const [activeSector, setActiveSector] = useState('ALL ARCHIVE');
+      const [selectedSizes, setSelectedSizes] = useState({});
+      const [bag, setBag] = useState([]);
+      const [isBagOpen, setIsBagOpen] = useState(false);
+
+      const filteredItems = useMemo(() => {
+        if (activeSector === 'ALL ARCHIVE') return TECHNICAL_ARCHIVE;
+        return TECHNICAL_ARCHIVE.filter(i => i.category === activeSector);
+      }, [activeSector]);
+
+      const handleSelectSize = (itemId, size) => {
+        setSelectedSizes(prev => ({ ...prev, [itemId]: size }));
+      };
+
+      const handleAddToBag = (item) => {
+        const size = selectedSizes[item.id] || item.sizes[0];
+        setBag(prev => {
+          const match = prev.find(b => b.id === item.id && b.size === size);
+          if (match) {
+            return prev.map(b =>
+              b.id === item.id && b.size === size
+                ? { ...b, quantity: b.quantity + 1 }
+                : b
+            );
+          }
+          return [...prev, { ...item, size, quantity: 1 }];
+        });
+        setIsBagOpen(true);
+      };
+
+      const bagCount = bag.reduce((acc, curr) => acc + curr.quantity, 0);
+      const bagTotal = bag.reduce((acc, curr) => acc + curr.price * curr.quantity, 0);
+
+      return (
+        <div className="store-container">
+          <div className="telemetry-ticker">
+            <div className="ticker-left">
+              <span className="live-dot" />
+              <span>SYS.VER 2.4.0 // ACTIVE ALLOCATION</span>
+            </div>
+            <div>GLOBAL DISPATCH: 14:00 UTC // ZERO PLASTIC</div>
+          </div>
+
+          <header className="store-header">
+            <div className="store-header-inner">
+              <div className="brand-block">
+                <span className="brand-logo">NØRD.LABS</span>
+                <span className="brand-spec-id">TECH-ARCHIVE</span>
+              </div>
+
+              <nav className="nav-links">
+                <button className="nav-link active">Apparel Index</button>
+                <button className="nav-link">Textile Matrix</button>
+                <button className="nav-link">Mill Partners</button>
+              </nav>
+
+              <button className="bag-btn" onClick={() => setIsBagOpen(true)}>
+                <span>Cart</span>
+                <span className="bag-pill">{bagCount}</span>
+              </button>
+            </div>
+          </header>
+
+          <section className="store-hero">
+            <div>
+              <div className="hero-tag">[SYSTEM ARCHITECTURE // APPAREL DIVISION]</div>
+              <h1 className="hero-heading">
+                Zero ornamentation.<br />
+                Functional telemetry.
+              </h1>
+            </div>
+            <p className="hero-subtext">
+              Engineered for mechanical resilience. High-density organic weaves,
+              cordura reinforcement, and parametric patterning. No synthetic branding.
+            </p>
+          </section>
+
+          <div className="filter-bar">
+            <div className="filter-group">
+              {SECTORS.map(sec => (
+                <button
+                  key={sec}
+                  className={`filter-pill ${activeSector === sec ? 'active' : ''}`}
+                  onClick={() => setActiveSector(sec)}
+                >
+                  {sec}
+                </button>
+              ))}
+            </div>
+            <span className="item-counter">{filteredItems.length} UNITS LOGGED</span>
+          </div>
+
+          <main className="product-grid">
+            {filteredItems.map(item => {
+              const currentSize = selectedSizes[item.id] || item.sizes[0];
+              return (
+                <article key={item.id} className="product-card">
+                  <div className="card-top-bar">
+                    <span className="spec-code">{item.code}</span>
+                    <span>{item.category.toUpperCase()}</span>
+                  </div>
+
+                  <div className="image-container">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="product-image"
+                      loading="lazy"
+                    />
+                    <span className="product-badge">{item.badge}</span>
+                  </div>
+
+                  <div className="card-info">
+                    <div className="card-header-row">
+                      <h2 className="product-title">{item.title}</h2>
+                      <span className="product-price">${item.price}</span>
+                    </div>
+
+                    <div className="spec-table">
+                      <div className="spec-row">
+                        <span className="spec-key">Density</span>
+                        <span className="spec-val">{item.weight}</span>
+                      </div>
+                      <div className="spec-row">
+                        <span className="spec-key">Textile</span>
+                        <span className="spec-val">{item.fabric}</span>
+                      </div>
+                      <div className="spec-row">
+                        <span className="spec-key">Hardware</span>
+                        <span className="spec-val">{item.hardware}</span>
+                      </div>
+                    </div>
+
+                    <div className="card-action-row">
+                      <div className="size-select-group">
+                        {item.sizes.map(sz => (
+                          <button
+                            key={sz}
+                            className={`size-btn ${currentSize === sz ? 'selected' : ''}`}
+                            onClick={() => handleSelectSize(item.id, sz)}
+                          >
+                            {sz}
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        className="add-bag-btn"
+                        onClick={() => handleAddToBag(item)}
+                      >
+                        + Add
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </main>
+
+          {isBagOpen && (
+            <div className="bag-overlay" onClick={() => setIsBagOpen(false)}>
+              <aside className="bag-drawer" onClick={e => e.stopPropagation()}>
+                <div className="drawer-header">
+                  <h2 className="drawer-title">ALLOCATED CARGO ({bagCount})</h2>
+                  <button className="close-btn" onClick={() => setIsBagOpen(false)}>[ESC]</button>
+                </div>
+
+                <div className="drawer-items">
+                  {bag.length === 0 ? (
+                    <p className="empty-bag">ZERO ALLOCATIONS FOUND.</p>
+                  ) : (
+                    bag.map(item => (
+                      <div key={`${item.id}-${item.size}`} className="bag-item">
+                        <img src={item.image} alt={item.title} className="bag-item-img" />
+                        <div className="bag-item-details">
+                          <div>
+                            <div className="bag-item-title">{item.title}</div>
+                            <div className="bag-item-meta">
+                              SIZE: {item.size} // QTY: {item.quantity}
+                            </div>
+                          </div>
+                          <div className="bag-item-price">${item.price * item.quantity}</div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {bag.length > 0 && (
+                  <div className="drawer-footer">
+                    <div className="drawer-total">
+                      <span>TOTAL VALUATION</span>
+                      <span className="total-val">${bagTotal} USD</span>
+                    </div>
+                    <button className="checkout-btn">Authorize Order</button>
+                  </div>
+                )}
+              </aside>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<StoreApp />);
+  </script>
+</body>
+</html>

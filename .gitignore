@@ -1,0 +1,29 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Production build
+dist
+dist-ssr
+
+# Local environment & secrets
+.env.local
+.env.*.local
+
+# Testing & logs
+test-results
+playwright-report
+blob-report
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor & OS files
+.DS_Store
+Thumbs.db
+.vscode
+.idea
+
+# Vercel deployment config
+.vercel
