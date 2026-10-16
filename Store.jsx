@@ -202,7 +202,7 @@ export default function StoreApp() {
           return parsed;
         }
       }
-    } catch (e) {}
+    } catch (e) { }
     localStorage.setItem(LOCAL_STORAGE_KEYS.PRODUCTS, JSON.stringify(INITIAL_PRODUCTS));
     return INITIAL_PRODUCTS;
   });
@@ -308,11 +308,11 @@ export default function StoreApp() {
       const bankRef = (ord.payment?.bankRefNumber || '').toLowerCase();
 
       return oId === query ||
-             cleanOId === cleanQuery ||
-             (cleanQuery.length >= 4 && cleanOId.endsWith(cleanQuery)) ||
-             (waybill && (waybill === query || cleanWaybill === cleanQuery)) ||
-             (gcashRef && gcashRef === query) ||
-             (bankRef && bankRef === query);
+        cleanOId === cleanQuery ||
+        (cleanQuery.length >= 4 && cleanOId.endsWith(cleanQuery)) ||
+        (waybill && (waybill === query || cleanWaybill === cleanQuery)) ||
+        (gcashRef && gcashRef === query) ||
+        (bankRef && bankRef === query);
     });
 
     setTrackedOrder(found || null);
@@ -331,7 +331,7 @@ export default function StoreApp() {
           dispatchTemplateId: parsed.dispatchTemplateId || 'template_nzrxl0m',
         };
       }
-    } catch (e) {}
+    } catch (e) { }
     return {
       serviceId: import.meta.env?.VITE_EMAILJS_SERVICE_ID || 'service_q87wozk',
       publicKey: import.meta.env?.VITE_EMAILJS_PUBLIC_KEY || 'sFrMt_DI_Ca-c84FX',
@@ -388,7 +388,7 @@ export default function StoreApp() {
           const updated = [...new Set([...prev, recipient])];
           try {
             localStorage.setItem('rnr_sent_client_emails', JSON.stringify(updated));
-          } catch (e) {}
+          } catch (e) { }
           return updated;
         });
       }
@@ -452,7 +452,7 @@ export default function StoreApp() {
         }
       }
       keysToRemove.forEach(k => localStorage.removeItem(k));
-    } catch (e) {}
+    } catch (e) { }
 
     if (!products || products.length < 20 || products[0]?.title !== 'Maroon Gold Athletic Dri-FIT Tee') {
       setProducts(INITIAL_PRODUCTS);
@@ -820,8 +820,8 @@ export default function StoreApp() {
     const trackingUrl = dispatchCourier === 'RNT Express'
       ? `https://track.rnr-onlineshop.ph/?ref=${dispatchTrackingNum}`
       : dispatchCourier === 'LBC Express'
-      ? `https://www.lbcexpress.com/track/?tracking_no=${dispatchTrackingNum}`
-      : `https://track.rnr-onlineshop.ph/?ref=${dispatchTrackingNum}`;
+        ? `https://www.lbcexpress.com/track/?tracking_no=${dispatchTrackingNum}`
+        : `https://track.rnr-onlineshop.ph/?ref=${dispatchTrackingNum}`;
 
     const dispatchData = {
       courier: dispatchCourier,
@@ -974,7 +974,7 @@ export default function StoreApp() {
       });
       try {
         localStorage.setItem(LOCAL_STORAGE_KEYS.PRODUCTS, JSON.stringify(updated));
-      } catch (e) {}
+      } catch (e) { }
       return updated;
     });
 
@@ -1298,10 +1298,9 @@ export default function StoreApp() {
                               )}
                             </td>
                             <td>
-                              <span className={`status-badge ${
-                                order.payment.status.includes('PENDING') ? 'status-pending' :
+                              <span className={`status-badge ${order.payment.status.includes('PENDING') ? 'status-pending' :
                                 order.payment.status.includes('VERIFIED') ? 'status-verified' : 'status-dispatched'
-                              }`}>
+                                }`}>
                                 {order.payment.status}
                               </span>
                               {order.receipt && (
@@ -1619,77 +1618,77 @@ export default function StoreApp() {
                   <h3 style={{ fontSize: '16px', fontWeight: 700 }}>Real-Time Inventory Levels</h3>
                   <div className="admin-table-scroll-wrap">
                     <table className="admin-table">
-                    <thead>
-                      <tr>
-                        <th>Product</th>
-                        <th>Category</th>
-                        <th>Price</th>
-                        <th>Stock Breakdown</th>
-                        <th>Quick Restock</th>
-                        <th className="admin-manage-th">Manage</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {products.map(prod => (
-                        <tr key={prod.id}>
-                          <td><strong>{prod.title}</strong></td>
-                          <td>{prod.category}</td>
-                          <td>₱{prod.price.toLocaleString()}</td>
-                          <td>
-                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                              {Object.entries(prod.stock).map(([sz, qty]) => (
-                                <span
-                                  key={sz}
-                                  style={{
-                                    padding: '2px 6px',
-                                    background: qty === 0 ? '#FEE2E2' : qty < 3 ? '#FEF3C7' : '#F3F4F6',
-                                    color: qty === 0 ? '#DC2626' : qty < 3 ? '#D97706' : '#111827',
-                                    fontWeight: 700,
-                                    fontSize: '11px',
-                                  }}
-                                >
-                                  {sz}: {qty}
-                                </span>
-                              ))}
-                            </div>
-                          </td>
-                          <td>
-                            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                              {Object.keys(prod.stock).map(sz => (
-                                <button
-                                  key={sz}
-                                  className="admin-action-btn"
-                                  onClick={() => handleQuickRestock(prod.id, sz)}
-                                >
-                                  +5 {sz}
-                                </button>
-                              ))}
-                            </div>
-                          </td>
-                          <td className="admin-manage-td">
-                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
-                              <button
-                                type="button"
-                                className="admin-edit-btn"
-                                onClick={() => handleOpenEditProduct(prod)}
-                              >
-                                Edit
-                              </button>
-                              <button
-                                type="button"
-                                className="admin-delete-btn"
-                                onClick={() => setProductToDelete(prod)}
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          </td>
+                      <thead>
+                        <tr>
+                          <th>Product</th>
+                          <th>Category</th>
+                          <th>Price</th>
+                          <th>Stock Breakdown</th>
+                          <th>Quick Restock</th>
+                          <th className="admin-manage-th">Manage</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {products.map(prod => (
+                          <tr key={prod.id}>
+                            <td><strong>{prod.title}</strong></td>
+                            <td>{prod.category}</td>
+                            <td>₱{prod.price.toLocaleString()}</td>
+                            <td>
+                              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                {Object.entries(prod.stock).map(([sz, qty]) => (
+                                  <span
+                                    key={sz}
+                                    style={{
+                                      padding: '2px 6px',
+                                      background: qty === 0 ? '#FEE2E2' : qty < 3 ? '#FEF3C7' : '#F3F4F6',
+                                      color: qty === 0 ? '#DC2626' : qty < 3 ? '#D97706' : '#111827',
+                                      fontWeight: 700,
+                                      fontSize: '11px',
+                                    }}
+                                  >
+                                    {sz}: {qty}
+                                  </span>
+                                ))}
+                              </div>
+                            </td>
+                            <td>
+                              <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                                {Object.keys(prod.stock).map(sz => (
+                                  <button
+                                    key={sz}
+                                    className="admin-action-btn"
+                                    onClick={() => handleQuickRestock(prod.id, sz)}
+                                  >
+                                    +5 {sz}
+                                  </button>
+                                ))}
+                              </div>
+                            </td>
+                            <td className="admin-manage-td">
+                              <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                                <button
+                                  type="button"
+                                  className="admin-edit-btn"
+                                  onClick={() => handleOpenEditProduct(prod)}
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  className="admin-delete-btn"
+                                  onClick={() => setProductToDelete(prod)}
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
               </div>
             )}
 
@@ -1738,9 +1737,6 @@ export default function StoreApp() {
                 <h2 className="lulus-hero-tagline">
                   Engineered for Speed. Built for Endurance &amp; Daily Athletes.
                 </h2>
-                <p className="lulus-hero-summary">
-                  Cozy down in next-generation high-performance sportswear, aerodynamic cycling jerseys, and moisture-wicking Dri-FIT thermal layers.
-                </p>
 
                 {/* Shop Now Primary Button */}
                 <div className="lulus-cta-group">
@@ -1839,125 +1835,125 @@ export default function StoreApp() {
               </div>
             </div>
 
-          {/* Product Grid */}
-          <main className="product-grid">
-            {filteredProducts.map(product => {
-              const sizes = Object.keys(product.stock);
-              const selectedSize = selectedSizes[product.id] || sizes[0];
-              const currentStock = product.stock[selectedSize] || 0;
-              const isSoldOut = currentStock === 0;
-              const avgRating = getAverageRating(product.reviews);
+            {/* Product Grid */}
+            <main className="product-grid">
+              {filteredProducts.map(product => {
+                const sizes = Object.keys(product.stock);
+                const selectedSize = selectedSizes[product.id] || sizes[0];
+                const currentStock = product.stock[selectedSize] || 0;
+                const isSoldOut = currentStock === 0;
+                const avgRating = getAverageRating(product.reviews);
 
-              return (
-                <article key={product.id} className="item-card">
-                  <div className="card-top">
-                    <span className="card-rating-badge">
-                      {avgRating ? `★ ${avgRating} (${product.reviews.length})` : '★ New'}
-                    </span>
-                    <span className="card-badge">{product.badge}</span>
-                  </div>
-
-                  <div className="card-image-box" onClick={() => { setPreviewProduct(product); setPreviewImageIdx(0); }}>
-                    <img src={getActiveImage(product)} alt={product.title} className="card-img" loading="lazy" />
-                    {product.images && product.images.length > 1 && (
-                      <div className="card-multi-img-badge">
-                        <span>📷 {product.images.length} photos</span>
-                      </div>
-                    )}
-                    <div className="preview-overlay-hint">
-                      Click to Preview & Reviews
-                    </div>
-                  </div>
-
-                  <div className="card-body">
-                    <div className="card-heading-row">
-                      <h2 className="item-title" onClick={() => { setPreviewProduct(product); setPreviewImageIdx(0); }}>{product.title}</h2>
-                      <span className="item-price">₱{product.price.toLocaleString()}</span>
+                return (
+                  <article key={product.id} className="item-card">
+                    <div className="card-top">
+                      <span className="card-rating-badge">
+                        {avgRating ? `★ ${avgRating} (${product.reviews.length})` : '★ New'}
+                      </span>
+                      <span className="card-badge">{product.badge}</span>
                     </div>
 
-                    <p className="item-fabric">{product.fabric}</p>
-
-                    {/* Color Variations */}
-                    {product.colors && product.colors.length > 0 && (
-                      <div className="color-swatches-section">
-                        <div className="variation-label-row">
-                          <span className="variation-label">Color:</span>
-                          <span className="selected-variation-value">{getActiveColor(product)}</span>
+                    <div className="card-image-box" onClick={() => { setPreviewProduct(product); setPreviewImageIdx(0); }}>
+                      <img src={getActiveImage(product)} alt={product.title} className="card-img" loading="lazy" />
+                      {product.images && product.images.length > 1 && (
+                        <div className="card-multi-img-badge">
+                          <span>📷 {product.images.length} photos</span>
                         </div>
-                        <div className="color-swatches-row">
-                          {product.colors.map(col => {
-                            const isSel = getActiveColor(product) === col.name;
+                      )}
+                      <div className="preview-overlay-hint">
+                        Click to Preview & Reviews
+                      </div>
+                    </div>
+
+                    <div className="card-body">
+                      <div className="card-heading-row">
+                        <h2 className="item-title" onClick={() => { setPreviewProduct(product); setPreviewImageIdx(0); }}>{product.title}</h2>
+                        <span className="item-price">₱{product.price.toLocaleString()}</span>
+                      </div>
+
+                      <p className="item-fabric">{product.fabric}</p>
+
+                      {/* Color Variations */}
+                      {product.colors && product.colors.length > 0 && (
+                        <div className="color-swatches-section">
+                          <div className="variation-label-row">
+                            <span className="variation-label">Color:</span>
+                            <span className="selected-variation-value">{getActiveColor(product)}</span>
+                          </div>
+                          <div className="color-swatches-row">
+                            {product.colors.map(col => {
+                              const isSel = getActiveColor(product) === col.name;
+                              return (
+                                <button
+                                  key={col.name}
+                                  type="button"
+                                  className={`color-swatch-btn ${isSel ? 'active' : ''}`}
+                                  style={{ backgroundColor: col.hex }}
+                                  title={col.name}
+                                  aria-label={`Select color ${col.name}`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedColors(prev => ({ ...prev, [product.id]: col.name }));
+                                  }}
+                                >
+                                  {isSel && <span className="swatch-check">✓</span>}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="size-picker-section">
+                        <div className="size-picker-header">
+                          <span>Select Size</span>
+                          <span>
+                            {isSoldOut ? (
+                              <strong style={{ color: 'var(--status-red)' }}>SOLD OUT</strong>
+                            ) : currentStock < 3 ? (
+                              <strong style={{ color: 'var(--status-amber)' }}>ONLY {currentStock} LEFT</strong>
+                            ) : (
+                              `${currentStock} in stock`
+                            )}
+                          </span>
+                        </div>
+
+                        <div className="size-button-row">
+                          {sizes.map(size => {
+                            const sizeQty = product.stock[size] || 0;
                             return (
                               <button
-                                key={col.name}
-                                type="button"
-                                className={`color-swatch-btn ${isSel ? 'active' : ''}`}
-                                style={{ backgroundColor: col.hex }}
-                                title={col.name}
-                                aria-label={`Select color ${col.name}`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedColors(prev => ({ ...prev, [product.id]: col.name }));
-                                }}
+                                key={size}
+                                className={`size-option-btn ${selectedSize === size ? 'selected' : ''} ${sizeQty === 0 ? 'out-of-stock' : ''}`}
+                                onClick={() => setSelectedSizes(prev => ({ ...prev, [product.id]: size }))}
                               >
-                                {isSel && <span className="swatch-check">✓</span>}
+                                {size}
                               </button>
                             );
                           })}
                         </div>
                       </div>
-                    )}
 
-                    <div className="size-picker-section">
-                      <div className="size-picker-header">
-                        <span>Select Size</span>
-                        <span>
-                          {isSoldOut ? (
-                            <strong style={{ color: 'var(--status-red)' }}>SOLD OUT</strong>
-                          ) : currentStock < 3 ? (
-                            <strong style={{ color: 'var(--status-amber)' }}>ONLY {currentStock} LEFT</strong>
-                          ) : (
-                            `${currentStock} in stock`
-                          )}
-                        </span>
-                      </div>
-
-                      <div className="size-button-row">
-                        {sizes.map(size => {
-                          const sizeQty = product.stock[size] || 0;
-                          return (
-                            <button
-                              key={size}
-                              className={`size-option-btn ${selectedSize === size ? 'selected' : ''} ${sizeQty === 0 ? 'out-of-stock' : ''}`}
-                              onClick={() => setSelectedSizes(prev => ({ ...prev, [product.id]: size }))}
-                            >
-                              {size}
-                            </button>
-                          );
-                        })}
+                      <div className="card-actions-grid">
+                        <button
+                          className="btn-preview"
+                          onClick={() => { setPreviewProduct(product); setPreviewImageIdx(0); }}
+                        >
+                          Preview
+                        </button>
+                        <button
+                          className="btn-add-bag"
+                          disabled={isSoldOut}
+                          onClick={() => handleAddToCart(product, selectedSize, getActiveColor(product))}
+                        >
+                          {isSoldOut ? 'Sold Out' : 'Add to Bag'}
+                        </button>
                       </div>
                     </div>
-
-                    <div className="card-actions-grid">
-                      <button
-                        className="btn-preview"
-                        onClick={() => { setPreviewProduct(product); setPreviewImageIdx(0); }}
-                      >
-                        Preview
-                      </button>
-                      <button
-                        className="btn-add-bag"
-                        disabled={isSoldOut}
-                        onClick={() => handleAddToCart(product, selectedSize, getActiveColor(product))}
-                      >
-                        {isSoldOut ? 'Sold Out' : 'Add to Bag'}
-                      </button>
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
-          </main>
+                  </article>
+                );
+              })}
+            </main>
           </section>
 
           {/* Mobile Floating Quick Bag Bar */}
@@ -2376,18 +2372,18 @@ export default function StoreApp() {
                     ✉ Official payment receipt and courier tracking link will be sent to your email upon payment verification.
                   </p>
                 </div>
-                  <div className="form-field">
-                    <label className="field-label">Shipping Dispatch Option</label>
-                    <select
-                      className="field-select"
-                      value={shippingRegion}
-                      onChange={e => setShippingRegion(e.target.value)}
-                    >
-                      <option value="standard_delivery">Standard Courier Dispatch (₱80 / Free ₱3,500+)</option>
-                      <option value="express_delivery">Express Air Dispatch (₱150)</option>
-                    </select>
-                  </div>
+                <div className="form-field">
+                  <label className="field-label">Shipping Dispatch Option</label>
+                  <select
+                    className="field-select"
+                    value={shippingRegion}
+                    onChange={e => setShippingRegion(e.target.value)}
+                  >
+                    <option value="standard_delivery">Standard Courier Dispatch (₱80 / Free ₱3,500+)</option>
+                    <option value="express_delivery">Express Air Dispatch (₱150)</option>
+                  </select>
                 </div>
+              </div>
 
               {/* Payment selector */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -2430,7 +2426,7 @@ export default function StoreApp() {
                         <rect x="15" y="15" width="35" height="35" fill="#005CE6" />
                         <rect x="22" y="22" width="21" height="21" fill="#FFF" />
                         <rect x="26" y="26" width="13" height="13" fill="#005CE6" />
-                        
+
                         <rect x="90" y="15" width="35" height="35" fill="#005CE6" />
                         <rect x="97" y="22" width="21" height="21" fill="#FFF" />
                         <rect x="101" y="26" width="13" height="13" fill="#005CE6" />
@@ -3392,7 +3388,7 @@ export default function StoreApp() {
                     <div className="tracking-info-card">
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>COURIER PARTNER</div>
                       <div style={{ fontSize: '16px', fontWeight: 800 }}>{activeEmailModal.courier}</div>
-                      
+
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '8px' }}>WAYBILL / TRACKING NUMBER</div>
                       <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--rnr-coral)', letterSpacing: '0.05em', fontFamily: 'var(--font-mono)' }}>
                         {activeEmailModal.trackingNumber}
