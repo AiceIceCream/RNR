@@ -496,11 +496,12 @@ test.describe('RNR OnlineShop — High-Performance Sportswear', () => {
     await verifyBtn.click();
     await expect(page.getByText(/✓ Receipt Emailed/i)).toBeVisible();
 
-    // Admin opens email view - verify "Send Real Email" button is visible ONLY to logged-in admin
+    // Admin opens email view - verify email content is displayed for review and duplicate send button is removed
     const viewEmailBtn = page.getByRole('button', { name: /View Email/i }).first();
     await viewEmailBtn.click();
     await expect(page.getByText(/CUSTOMER EMAIL NOTIFICATION \/\/ DISPATCH SIMULATION/i)).toBeVisible();
-    await expect(page.getByRole('button', { name: /Send Real Email to Customer's Gmail/i })).toBeVisible();
+    await expect(page.getByText(/✓ EMAIL NOTIFICATION DISPATCHED/i)).toBeVisible();
+    await expect(page.getByRole('button', { name: /Send Real Email to Customer's Gmail/i })).toHaveCount(0);
     await page.getByRole('button', { name: /Close Email Notification Preview/i }).click();
 
     // Admin dispatches package

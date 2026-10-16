@@ -3383,102 +3383,20 @@ export default function StoreApp() {
                 )}
               </div>
 
-              {/* Direct Real Email Transmission Button — ADMIN EXCLUSIVE */}
-              {isAdminLoggedIn ? (
-                <div style={{ marginTop: '4px', paddingTop: '14px', borderTop: '1px solid var(--border-light)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
-                      REAL GMAIL TRANSMISSION (EMAILJS) // ADMIN VERIFICATION ONLY:
+              {/* Email Sent Confirmation Status Notice */}
+              <div style={{ marginTop: '12px', padding: '12px 14px', background: 'var(--surface-alt)', border: '1px solid var(--border-light)', fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)', lineHeight: '1.5' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <span style={{ fontWeight: 700, color: '#065F46' }}>✓ EMAIL NOTIFICATION DISPATCHED</span>
+                  {emailConfig.serviceId && emailConfig.publicKey && (
+                    <span style={{ fontSize: '10px', color: '#065F46', background: '#D1FAE5', padding: '2px 8px', borderRadius: '999px', fontWeight: 700 }}>
+                      ✓ Service Active
                     </span>
-                    {emailConfig.serviceId && emailConfig.publicKey ? (
-                      <span style={{ fontSize: '10px', color: '#065F46', background: '#D1FAE5', padding: '2px 8px', borderRadius: '999px', fontWeight: 700 }}>
-                        ✓ Service Configured
-                      </span>
-                    ) : (
-                      <span style={{ fontSize: '10px', color: '#92400E', background: '#FEF3C7', padding: '2px 8px', borderRadius: '999px', fontWeight: 700 }}>
-                        ⚠️ Setup Required in Admin
-                      </span>
-                    )}
-                  </div>
-
-                  <button
-                    type="button"
-                    className="admin-action-btn"
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      background: '#10B981',
-                      color: '#FFFFFF',
-                      borderColor: '#059669',
-                      fontWeight: 800,
-                      fontSize: '11px',
-                      letterSpacing: '0.05em',
-                      marginBottom: '8px'
-                    }}
-                    disabled={isSendingTestEmail}
-                    onClick={async () => {
-                      const recipient = activeEmailModal.to;
-                      const tId = activeEmailModal.type === 'RECEIPT' 
-                        ? (emailConfig.receiptTemplateId?.trim() || emailConfig.dispatchTemplateId?.trim())
-                        : (emailConfig.dispatchTemplateId?.trim() || emailConfig.receiptTemplateId?.trim());
-
-                      if (!emailConfig.serviceId || !emailConfig.publicKey || !tId) {
-                        showToast('Please configure your EmailJS credentials in the Admin Portal -> Email Delivery tab first!');
-                        return;
-                      }
-
-                      const itemsList = activeEmailModal.order?.items || [];
-                      const ordersArray = itemsList.map(it => ({
-                        name: `${it.title}${it.size ? ` (${it.size})` : ''}${it.color ? ` • ${it.color}` : ''}`,
-                        units: it.quantity,
-                        price: it.price?.toLocaleString(),
-                        image_url: it.image?.startsWith('http') ? it.image : (window.location.origin + (it.image || '/Photocards/1.jpeg'))
-                      }));
-
-                      const params = {
-                        email: recipient,
-                        to_email: recipient,
-                        to_name: activeEmailModal.order?.customer?.name || 'Valued Athlete',
-                        subject: activeEmailModal.subject,
-                        order_id: activeEmailModal.order?.orderId || 'RNR-ORDER',
-                        receipt_number: activeEmailModal.receiptNumber || `RCPT-${activeEmailModal.order?.orderId || '001'}`,
-                        payment_method: activeEmailModal.order?.payment?.method?.toUpperCase() || 'GCASH',
-                        payment_ref: activeEmailModal.order?.payment?.gcashRefNumber || activeEmailModal.order?.payment?.bankRefNumber || 'N/A',
-                        orders: ordersArray,
-                        cost: {
-                          shipping: activeEmailModal.order?.shippingFee ? activeEmailModal.order.shippingFee.toLocaleString() : '0',
-                          tax: '0 (VAT Inclusive)',
-                          total: activeEmailModal.order?.total ? activeEmailModal.order.total.toLocaleString() : '0',
-                        },
-                        total_amount: activeEmailModal.order ? `₱${activeEmailModal.order.total?.toLocaleString()}` : '',
-                        customer_address: `${activeEmailModal.order?.customer?.address || ''}, ${activeEmailModal.order?.customer?.city || ''}`,
-                        items_summary: itemsList.map(it => `${it.title} (${it.size}) x${it.quantity}`).join(', ') || '',
-                        courier: activeEmailModal.courier || '',
-                        tracking_number: activeEmailModal.trackingNumber || '',
-                        tracking_url: activeEmailModal.trackingUrl || '',
-                        date: new Date().toLocaleDateString(),
-                        message: activeEmailModal.type === 'RECEIPT'
-                          ? `Your official payment receipt for order #${activeEmailModal.order?.orderId} has been verified by RNR OnlineShop.`
-                          : `Your order #${activeEmailModal.order?.orderId} has been dispatched via ${activeEmailModal.courier}. Tracking: ${activeEmailModal.trackingNumber}`
-                      };
-
-                      const res = await sendRealEmail({ templateId: tId, templateParams: params });
-                      setIsSendingTestEmail(false);
-                      if (res.success) {
-                        showToast(`✓ Real email successfully delivered to ${recipient}! Check Gmail inbox.`);
-                      } else {
-                        showToast(`❌ EmailJS Error: ${res.error}`);
-                      }
-                    }}
-                  >
-                    {isSendingTestEmail ? 'Transmitting to Gmail...' : `🚀 Send Real Email to Customer's Gmail (${activeEmailModal.to})`}
-                  </button>
+                  )}
                 </div>
-              ) : (
-                <div style={{ marginTop: '12px', padding: '12px 14px', background: 'var(--surface-alt)', border: '1px solid var(--border-light)', fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)', lineHeight: '1.5' }}>
-                  🔒 <strong>Verification Responsibility Notice:</strong> Official receipt transmission and payment verification are restricted to authenticated RNR Administrators only. Customers can review live order status anytime using the <strong>Track Order</strong> portal with their Order ID.
+                <div>
+                  This notification was automatically sent to <strong>{activeEmailModal.to}</strong> upon order processing. Manual re-send is disabled to prevent duplicate emails.
                 </div>
-              )}
+              </div>
 
               <button className="checkout-action-btn" onClick={() => setActiveEmailModal(null)}>
                 Close Email Notification Preview
