@@ -1732,7 +1732,7 @@ export default function StoreApp() {
                 </div>
                 <h1 className="lulus-hero-title">
                   YOU'VE BEEN<br />
-                  <span className="lulus-headline-serif">WARMED</span>
+                  <span className="lulus-headline-serif">Turning Heads</span>
                 </h1>
                 <h2 className="lulus-hero-tagline">
                   Engineered for Speed. Built for Endurance &amp; Daily Athletes.
