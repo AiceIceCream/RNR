@@ -229,6 +229,9 @@ export default function StoreApp() {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [adminTab, setAdminTab] = useState('orders'); // 'orders' | 'inventory'
   const [productToDelete, setProductToDelete] = useState(null);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [newEditSizeName, setNewEditSizeName] = useState('');
+  const [newEditSizeQty, setNewEditSizeQty] = useState('10');
   const [orderSuccess, setOrderSuccess] = useState(null);
   const [toast, setToast] = useState(null);
 
@@ -927,6 +930,68 @@ export default function StoreApp() {
     showToast(`Deleted "${productTitle}" from catalog.`);
   };
 
+  // Admin edit product handlers
+  const handleOpenEditProduct = (prod) => {
+    setEditingProduct({
+      id: prod.id,
+      title: prod.title,
+      category: prod.category,
+      price: prod.price,
+      image: prod.image,
+      stock: { ...prod.stock },
+    });
+    setNewEditSizeName('');
+    setNewEditSizeQty('10');
+  };
+
+  const handleSaveEditedProduct = () => {
+    if (!editingProduct) return;
+    const { id, title, category, price, stock } = editingProduct;
+
+    if (!title?.trim()) {
+      showToast('Product title cannot be empty.');
+      return;
+    }
+    if (!price || price <= 0) {
+      showToast('Price must be greater than 0.');
+      return;
+    }
+    if (!stock || Object.keys(stock).length === 0) {
+      showToast('Product must have at least one size configured.');
+      return;
+    }
+
+    setProducts(prev => {
+      const updated = prev.map(p => {
+        if (p.id !== id) return p;
+        return {
+          ...p,
+          title: title.trim(),
+          category: category.trim(),
+          price: Number(price),
+          stock: { ...stock },
+        };
+      });
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEYS.PRODUCTS, JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    if (previewProduct && previewProduct.id === id) {
+      setPreviewProduct(prev => ({
+        ...prev,
+        title: title.trim(),
+        category: category.trim(),
+        price: Number(price),
+        stock: { ...stock },
+      }));
+    }
+
+    showToast(`✓ "${title.trim()}" updated: ₱${Number(price).toLocaleString()} // ${category} // ${Object.keys(stock).length} sizes.`);
+    setEditingProduct(null);
+  };
+
   // File upload handler from device (supports multiple files)
   const handleDeviceImageUpload = (e) => {
     const files = Array.from(e.target.files || []);
@@ -1602,13 +1667,22 @@ export default function StoreApp() {
                             </div>
                           </td>
                           <td className="admin-manage-td">
-                            <button
-                              type="button"
-                              className="admin-delete-btn"
-                              onClick={() => setProductToDelete(prod)}
-                            >
-                              Delete
-                            </button>
+                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                              <button
+                                type="button"
+                                className="admin-edit-btn"
+                                onClick={() => handleOpenEditProduct(prod)}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                className="admin-delete-btn"
+                                onClick={() => setProductToDelete(prod)}
+                              >
+                                Delete
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -2061,13 +2135,24 @@ export default function StoreApp() {
                       <span>ADMINISTRATOR ACTION</span>
                       <span>Garment ID: {activePreview.id}</span>
                     </div>
-                    <button
-                      type="button"
-                      className="admin-delete-btn"
-                      onClick={() => setProductToDelete(activePreview)}
-                    >
-                      Delete Garment from Catalog
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+                      <button
+                        type="button"
+                        className="admin-edit-btn"
+                        style={{ flex: 1, padding: '10px' }}
+                        onClick={() => handleOpenEditProduct(activePreview)}
+                      >
+                        ✏ Edit Garment (Price, Category, Stock, Size)
+                      </button>
+                      <button
+                        type="button"
+                        className="admin-delete-btn"
+                        style={{ padding: '10px 14px' }}
+                        onClick={() => setProductToDelete(activePreview)}
+                      >
+                        Delete Garment
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -2840,6 +2925,237 @@ export default function StoreApp() {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Product Modal */}
+      {editingProduct && (
+        <div className="modal-overlay" onClick={() => setEditingProduct(null)}>
+          <div className="checkout-modal-card edit-product-modal-card" style={{ maxWidth: '600px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--rnr-coral)', fontWeight: 800 }}>
+                EDIT PRODUCT // INVENTORY &amp; CATALOG
+              </span>
+              <button type="button" className="close-btn" onClick={() => setEditingProduct(null)}>[CLOSE]</button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSaveEditedProduct();
+              }}
+              className="modal-body"
+              style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}
+            >
+              {/* Product Header / Image thumbnail */}
+              <div style={{ display: 'flex', gap: '14px', alignItems: 'center', paddingBottom: '14px', borderBottom: '1px solid var(--border-light)' }}>
+                {editingProduct.image && (
+                  <img
+                    src={editingProduct.image}
+                    alt={editingProduct.title}
+                    style={{ width: '64px', height: '64px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border-light)' }}
+                  />
+                )}
+                <div style={{ flex: 1 }}>
+                  <label className="field-label" style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Product Title</label>
+                  <input
+                    type="text"
+                    className="field-input"
+                    value={editingProduct.title}
+                    onChange={e => setEditingProduct(prev => ({ ...prev, title: e.target.value }))}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Price & Category Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div className="form-field">
+                  <label className="field-label">Price (₱ PHP)</label>
+                  <input
+                    type="number"
+                    className="field-input"
+                    min="1"
+                    step="1"
+                    value={editingProduct.price}
+                    onChange={e => setEditingProduct(prev => ({ ...prev, price: Math.max(0, parseInt(e.target.value, 10) || 0) }))}
+                    required
+                  />
+                </div>
+
+                <div className="form-field">
+                  <label className="field-label">Category</label>
+                  <select
+                    className="field-input"
+                    value={editingProduct.category}
+                    onChange={e => setEditingProduct(prev => ({ ...prev, category: e.target.value }))}
+                  >
+                    <option value="Tees">Tees</option>
+                    <option value="Jerseys">Jerseys</option>
+                    <option value="Cycling Jerseys">Cycling Jerseys</option>
+                    <option value="Compression">Compression</option>
+                    <option value="Accessories">Accessories</option>
+                    <option value="Outerwear">Outerwear</option>
+                    <option value="Pants/Shorts">Pants/Shorts</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Sizes and Stocks Management */}
+              <div className="form-field">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <label className="field-label" style={{ margin: 0 }}>Sizes &amp; Stock Levels</label>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                    Total Units: {Object.values(editingProduct.stock || {}).reduce((a, b) => a + (Number(b) || 0), 0)}
+                  </span>
+                </div>
+
+                {/* Stock per size input list */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '10px' }}>
+                  {Object.entries(editingProduct.stock || {}).map(([sizeKey, sizeQty]) => (
+                    <div
+                      key={sizeKey}
+                      style={{
+                        background: 'var(--surface-alt)',
+                        border: '1px solid var(--border-light)',
+                        padding: '10px 12px',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '6px'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <strong style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--text-main)' }}>
+                          Size {sizeKey}
+                        </strong>
+                        <button
+                          type="button"
+                          title={`Remove Size ${sizeKey}`}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'var(--status-red)',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            lineHeight: 1,
+                            padding: '0 2px'
+                          }}
+                          onClick={() => {
+                            setEditingProduct(prev => {
+                              const nextStock = { ...prev.stock };
+                              delete nextStock[sizeKey];
+                              return { ...prev, stock: nextStock };
+                            });
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          className="field-input"
+                          style={{ padding: '6px 8px', fontSize: '13px', textAlign: 'center' }}
+                          value={sizeQty}
+                          onChange={e => {
+                            const val = Math.max(0, parseInt(e.target.value, 10) || 0);
+                            setEditingProduct(prev => ({
+                              ...prev,
+                              stock: { ...prev.stock, [sizeKey]: val }
+                            }));
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Add New Size Row */}
+                <div style={{ marginTop: '12px', padding: '12px', background: 'var(--surface-alt)', border: '1px dashed var(--border-light)', borderRadius: '4px' }}>
+                  <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                    QUICK ADD PRESET SIZE:
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                    {['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', 'OS'].filter(s => !Object.keys(editingProduct.stock || {}).includes(s)).map(presetSize => (
+                      <button
+                        key={presetSize}
+                        type="button"
+                        className="admin-action-btn"
+                        style={{ fontSize: '10px', padding: '4px 10px' }}
+                        onClick={() => {
+                          setEditingProduct(prev => ({
+                            ...prev,
+                            stock: { ...prev.stock, [presetSize]: 10 }
+                          }));
+                        }}
+                      >
+                        + {presetSize}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                    <input
+                      type="text"
+                      className="field-input"
+                      placeholder="Custom Size (e.g. 4XL, Youth M)"
+                      style={{ flex: 1, padding: '6px 10px', fontSize: '12px' }}
+                      value={newEditSizeName}
+                      onChange={e => setNewEditSizeName(e.target.value)}
+                    />
+                    <input
+                      type="number"
+                      className="field-input"
+                      placeholder="Stock"
+                      min="0"
+                      style={{ width: '80px', padding: '6px 10px', fontSize: '12px' }}
+                      value={newEditSizeQty}
+                      onChange={e => setNewEditSizeQty(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="admin-action-btn"
+                      style={{ background: 'var(--text-main)', color: '#FFF', borderColor: 'var(--text-main)' }}
+                      onClick={() => {
+                        const trimmed = newEditSizeName.trim().toUpperCase();
+                        if (!trimmed) return;
+                        const qty = Math.max(0, parseInt(newEditSizeQty, 10) || 0);
+                        setEditingProduct(prev => ({
+                          ...prev,
+                          stock: { ...prev.stock, [trimmed]: qty }
+                        }));
+                        setNewEditSizeName('');
+                        setNewEditSizeQty('10');
+                      }}
+                    >
+                      Add Size
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="confirm-modal-actions" style={{ marginTop: '8px' }}>
+                <button
+                  type="button"
+                  className="admin-cancel-btn"
+                  onClick={() => setEditingProduct(null)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="admin-submit-btn"
+                  style={{ width: 'auto', padding: '10px 22px', margin: 0 }}
+                >
+                  Save Product Changes →
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

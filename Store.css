@@ -2157,13 +2157,35 @@ body {
 
 /* Manage Column Fixed Width to Prevent Table Layout Shift */
 .admin-manage-th,
-.admin-manage-td {
-  width: 90px;
-  min-width: 90px;
+.admin-manage-td,
+.admin-manage-th {
+  width: 140px;
+  min-width: 140px;
   text-align: center !important;
 }
 
-/* Admin Delete & Cancel Buttons */
+/* Admin Edit, Delete & Cancel Buttons */
+.admin-edit-btn {
+  background: transparent;
+  color: #1D4ED8;
+  border: 1px solid #3B82F6;
+  padding: 6px 12px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  white-space: nowrap;
+}
+
+.admin-edit-btn:hover {
+  background: #2563EB;
+  color: #FFFFFF;
+  border-color: #1D4ED8;
+}
+
 .admin-delete-btn {
   background: transparent;
   color: #DC2626;

@@ -547,6 +547,59 @@ test.describe('RNR OnlineShop — High-Performance Sportswear', () => {
     // 7. Verify floating help button
     await expect(page.locator('.floating-help-btn')).toBeVisible();
   });
+
+  test('should allow editing product price, category, stocks, and size in inventory table', async ({ page }) => {
+    // 1. Log in to Admin Portal
+    await page.getByRole('button', { name: 'Admin Portal' }).click();
+    await page.locator('input[type="text"]').fill('admin');
+    await page.locator('input[type="password"]').fill('admin12345');
+    await page.getByRole('button', { name: 'Sign In' }).click();
+
+    // 2. Go to Inventory & Catalog tab
+    await page.getByRole('button', { name: /Inventory & Catalog/i }).click();
+    await expect(page.getByRole('heading', { name: /Real-Time Inventory Levels/i })).toBeVisible();
+
+    // 3. Find the first product row and click Edit
+    const firstRow = page.locator('.admin-table tbody tr').first();
+    const editBtn = firstRow.getByRole('button', { name: 'Edit' });
+    await expect(editBtn).toBeVisible();
+    await editBtn.click();
+
+    // 4. Modal should open
+    const modal = page.locator('.edit-product-modal-card');
+    await expect(modal).toBeVisible();
+    await expect(modal.getByText(/EDIT PRODUCT \/\/ INVENTORY & CATALOG/i)).toBeVisible();
+
+    // 5. Update price
+    const priceInput = modal.locator('input[type="number"]').first();
+    await priceInput.fill('799');
+
+    // 6. Update category
+    const categorySelect = modal.locator('select');
+    await categorySelect.selectOption('Jerseys');
+
+    // 7. Add preset size (e.g. + 2XL)
+    const add2XLBtn = modal.getByRole('button', { name: '+ 2XL' });
+    if (await add2XLBtn.isVisible()) {
+      await add2XLBtn.click();
+      await expect(modal.getByText('Size 2XL')).toBeVisible();
+    }
+
+    // 8. Add custom size
+    await modal.getByPlaceholder(/Custom Size/i).fill('3XL');
+    await modal.getByPlaceholder('Stock').fill('15');
+    await modal.getByRole('button', { name: 'Add Size' }).click();
+    await expect(modal.getByText('Size 3XL')).toBeVisible();
+
+    // 9. Save changes
+    await modal.getByRole('button', { name: /Save Product Changes/i }).click();
+
+    // 10. Verify modal closed and row updated in inventory table
+    await expect(modal).toHaveCount(0);
+    await expect(firstRow).toContainText('₱799');
+    await expect(firstRow).toContainText('Jerseys');
+    await expect(firstRow).toContainText('3XL: 15');
+  });
 });
 
 
